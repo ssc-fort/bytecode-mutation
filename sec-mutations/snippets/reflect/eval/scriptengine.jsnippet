@@ -1,0 +1,2 @@
+javax.script.ScriptEngine engine = new javax.script.ScriptEngineManager().getEngineByName(<enginename>);
+Object result = engine.eval(<script>);

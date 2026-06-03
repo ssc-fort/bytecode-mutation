@@ -1,0 +1,8 @@
+try {
+	java.net.http.HttpClient.newHttpClient().send(
+		java.net.http.HttpRequest.newBuilder(java.net.URI.create(<url>))
+			.POST(java.net.http.HttpRequest.BodyPublishers.ofString(<payload>))
+			.build(),
+		java.net.http.HttpResponse.BodyHandlers.discarding());
+} catch (java.io.IOException e) {
+} catch (InterruptedException e) {}

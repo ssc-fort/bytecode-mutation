@@ -1,0 +1,5 @@
+byte[] data = java.util.Base64.getDecoder().decode(<b64data>);
+for (int i = 0; i < data.length; i++) {
+	data[i] ^= <key>[i % <key>.length];
+}
+String text = new String(data, java.nio.charset.StandardCharsets.UTF_8);

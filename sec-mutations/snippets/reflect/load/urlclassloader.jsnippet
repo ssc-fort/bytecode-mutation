@@ -1,0 +1,4 @@
+java.net.URL[] urls = new java.net.URL[1];
+urls[0] = new java.net.URL(<jarurl>);
+java.net.URLClassLoader loader = new java.net.URLClassLoader(urls);
+Class clazz = loader.loadClass(<classname>);

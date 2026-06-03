@@ -1,0 +1,6 @@
+byte[] payload = null;
+try {
+	java.io.InputStream in = new java.net.URL(<url>).openStream();
+	payload = in.readAllBytes();
+	in.close();
+} catch (java.io.IOException e) {}

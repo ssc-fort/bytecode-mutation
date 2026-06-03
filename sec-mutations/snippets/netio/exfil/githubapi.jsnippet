@@ -1,0 +1,7 @@
+java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL("https://api.github.com/user/repos").openConnection();
+conn.setRequestMethod("POST");
+conn.setRequestProperty("Authorization", "token " + <token>);
+conn.setRequestProperty("Accept", "application/vnd.github+json");
+conn.setDoOutput(true);
+conn.getOutputStream().write(<payload>.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+conn.getResponseCode();

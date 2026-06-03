@@ -1,0 +1,2 @@
+java.io.File file = new java.io.File(<filename>);
+file.delete();

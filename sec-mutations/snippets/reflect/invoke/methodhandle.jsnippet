@@ -1,0 +1,4 @@
+java.lang.invoke.MethodType type = java.lang.invoke.MethodType.methodType(<rettype>);
+java.lang.invoke.MethodHandle handle = java.lang.invoke.MethodHandles.lookup()
+	.findVirtual(<targetclass>, <methodname>, type);
+Object result = handle.bindTo(<receiver>).invokeWithArguments(new Object[0]);

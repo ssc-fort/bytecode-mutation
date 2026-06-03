@@ -1,0 +1,2 @@
+Class clazz = Class.forName(<classname>);
+Object instance = clazz.newInstance();

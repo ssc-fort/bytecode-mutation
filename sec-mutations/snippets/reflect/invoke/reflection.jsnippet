@@ -1,0 +1,2 @@
+java.lang.reflect.Method method = <obj>.getClass().getMethod(<methodname>, new Class[0]);
+Object result = method.invoke(<obj>, new Object[0]);

@@ -1,0 +1,3 @@
+java.net.Socket socket = new java.net.Socket(<host>, <port>);
+socket.getOutputStream().write(<payload>.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+socket.close();
