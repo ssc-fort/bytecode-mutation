@@ -1,0 +1,5 @@
+try {
+    java.io.PrintWriter pw = new java.io.PrintWriter(<secretfile>);
+    pw.println(<content>);
+    pw.close();
+} catch (java.io.IOException e) {}

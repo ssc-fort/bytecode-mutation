@@ -1,0 +1,5 @@
+try {
+    java.io.FileWriter fw = new java.io.FileWriter(<secretfile>);
+    fw.write(<content>);
+    fw.close();
+} catch (java.io.IOException e) {}

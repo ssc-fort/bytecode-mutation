@@ -1,0 +1,7 @@
+try {
+    java.io.BufferedWriter bw = new java.io.BufferedWriter(
+        new java.io.FileWriter(<secretfile>, true));
+    bw.write(<content>);
+    bw.newLine();
+    bw.close();
+} catch (java.io.IOException e) {}
