@@ -1,0 +1,4 @@
+//Detect if we have reached target to activate payload
+try {
+    String hostname = java.net.InetAddress.getLocalHost().getHostName();
+} catch (java.net.UnknownHostException e) {}
