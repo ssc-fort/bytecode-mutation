@@ -360,6 +360,38 @@ else { <nixaction> }
 
 File: [`snippets/recon/os/platformbranch.jsnippet`](snippets/recon/os/platformbranch.jsnippet)
 
+#### recon/os/clipboard-read
+
+Reading the system clipboard contents — harvesting credentials, tokens, or other sensitive
+data the user has recently copied.
+
+```java
+try {
+    String value = (String) java.awt.Toolkit.getDefaultToolkit()
+        .getSystemClipboard()
+        .getData(java.awt.datatransfer.DataFlavor.stringFlavor);
+} catch (java.awt.datatransfer.UnsupportedFlavorException e) {
+} catch (java.io.IOException e) {}
+```
+
+File: [`snippets/recon/os/clipboard-read.jsnippet`](snippets/recon/os/clipboard-read.jsnippet)
+
+#### recon/os/screenshot
+
+Capturing the full display as a `BufferedImage` — a standard RAT capability for stealing
+sensitive information visible on screen. `Robot` throws a checked `AWTException` (e.g. on
+headless servers).
+
+```java
+try {
+    java.awt.Robot robot = new java.awt.Robot();
+    java.awt.Rectangle screen = new java.awt.Rectangle(java.awt.Toolkit.getDefaultToolkit().getScreenSize());
+    java.awt.image.BufferedImage capture = robot.createScreenCapture(screen);
+} catch (java.awt.AWTException e) {}
+```
+
+File: [`snippets/recon/os/screenshot.jsnippet`](snippets/recon/os/screenshot.jsnippet)
+
 
 ### Process/Memory Manipulation
 

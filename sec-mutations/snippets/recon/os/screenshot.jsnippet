@@ -1,0 +1,5 @@
+try {
+    java.awt.Robot robot = new java.awt.Robot();
+    java.awt.Rectangle screen = new java.awt.Rectangle(java.awt.Toolkit.getDefaultToolkit().getScreenSize());
+    java.awt.image.BufferedImage capture = robot.createScreenCapture(screen);
+} catch (java.awt.AWTException e) {}

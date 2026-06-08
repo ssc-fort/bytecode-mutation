@@ -1,3 +1,6 @@
-  String value = (String) java.awt.Toolkit.getDefaultToolkit()
-                .getSystemClipboard()
-                .getData(java.awt.datatransfer.DataFlavor.stringFlavor);
+try {
+    String value = (String) java.awt.Toolkit.getDefaultToolkit()
+        .getSystemClipboard()
+        .getData(java.awt.datatransfer.DataFlavor.stringFlavor);
+} catch (java.awt.datatransfer.UnsupportedFlavorException e) {
+} catch (java.io.IOException e) {}
