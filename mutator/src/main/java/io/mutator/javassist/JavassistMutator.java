@@ -14,7 +14,10 @@ import org.pitest.reloc.asm.ClassReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
@@ -279,7 +282,7 @@ public class JavassistMutator implements Mutator {
                     System.out.println("JavassistMutator: no injectable behaviors in "
                             + binaryName + " (" + detail + ")");
                     cc.detach();
-                    return new MutationResult(classBytes, false, null, -1, detail);
+                    return new MutationResult(classBytes, false, null, -1, detail, null);
                 }
                 InjectionTarget chosen = selectTarget(targets, seed);
                 System.out.printf("JavassistMutator: seed %d selected %s in %s%n",
@@ -294,14 +297,27 @@ public class JavassistMutator implements Mutator {
             CtBehavior behavior = resolveBehavior(cc, binaryName, targetName);
             lineNumber = lineNumberOf(behavior);
 
+            // Substitute placeholders now that the target behavior is known, so
+            // its parameters become candidates. Two formats are supported:
+            //   * typed <name> placeholders declared with // @in  → PlaceholderSubstitutor
+            //   * legacy #TOKEN# placeholders                      → SnippetToken
+            // Source without placeholders passes through unchanged either way.
+            long   subSeed = substitutionSeed(seed, binaryName, targetName, point);
+            String resolved;
+            if (PlaceholderSubstitutor.hasDeclarations(sourceCode)) {
+                resolved = PlaceholderSubstitutor.substitute(sourceCode, subSeed, paramRefsByType(behavior));
+            } else {
+                resolved = SnippetToken.substituteAll(sourceCode, subSeed, stringParamRefs(behavior));
+            }
+
             switch (point) {
-                case BEFORE -> behavior.insertBefore(sourceCode);
-                case AFTER  -> behavior.insertAfter(sourceCode);
+                case BEFORE -> behavior.insertBefore(resolved);
+                case AFTER  -> behavior.insertAfter(resolved);
             }
 
             byte[] result = cc.toBytecode();
             cc.detach();
-            return new MutationResult(result, true, targetName, lineNumber, null);
+            return new MutationResult(result, true, targetName, lineNumber, null, null);
 
         } catch (Exception e) {
             // targetName is null  → exception fired before a target was selected
@@ -324,13 +340,62 @@ public class JavassistMutator implements Mutator {
                     + binaryName + "#"
                     + (seed != null ? "<seed=" + seed + ">" : methodName)
                     + " failed (" + detail + "): " + e.getMessage());
-            return new MutationResult(classBytes, false, targetName, lineNumber, detail);
+            String message = e.getClass().getSimpleName() + ": " + e.getMessage();
+            return new MutationResult(classBytes, false, targetName, lineNumber, detail, message);
         }
     }
 
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
+
+    /**
+     * Returns the Javassist parameter references ({@code $1}, {@code $2}, …) of
+     * every {@code java.lang.String} parameter declared by {@code behavior}, in
+     * declaration order.  Javassist numbers parameters from {@code $1} for both
+     * static and instance behaviors ({@code $0} is {@code this}), so the indices
+     * are independent of the static modifier.  Returns an empty list when the
+     * behavior declares no string parameters.
+     */
+    private static List<String> stringParamRefs(CtBehavior behavior) throws Exception {
+        CtClass[]    params = behavior.getParameterTypes();
+        List<String> refs   = new ArrayList<>();
+        for (int i = 0; i < params.length; i++) {
+            if ("java.lang.String".equals(params[i].getName())) {
+                refs.add("$" + (i + 1));
+            }
+        }
+        return refs;
+    }
+
+    /**
+     * Returns the Javassist parameter references ({@code $1}, {@code $2}, …) of
+     * {@code behavior}, grouped by exact Java type name (e.g.
+     * {@code "java.lang.String" -> ["$1","$3"]}, {@code "int" -> ["$2"]},
+     * {@code "byte[]" -> [...]}).  Used to offer same-typed parameters as
+     * candidates for typed {@code @in} placeholders.
+     */
+    private static Map<String, List<String>> paramRefsByType(CtBehavior behavior) throws Exception {
+        CtClass[]                 params = behavior.getParameterTypes();
+        Map<String, List<String>> byType = new LinkedHashMap<>();
+        for (int i = 0; i < params.length; i++) {
+            byType.computeIfAbsent(params[i].getName(), k -> new ArrayList<>()).add("$" + (i + 1));
+        }
+        return byType;
+    }
+
+    /**
+     * Derives the token-substitution seed for a single injection site.  Mixing
+     * the base seed with the fully-qualified target identity keeps every
+     * {@code (seed, class, method, insertion-point)} reproducible while letting
+     * different sites receive different generated values.  In explicit-target
+     * mode ({@code seed == null}) snippets carry no tokens, so the base is 0.
+     */
+    private static long substitutionSeed(Long seed, String binaryName,
+            String targetName, InsertionPoint point) {
+        long base = (seed != null) ? seed : 0L;
+        return base * 1_000_003L + Objects.hash(binaryName, targetName, String.valueOf(point));
+    }
 
     /**
      * Returns the source line number of the first bytecode in {@code behavior},

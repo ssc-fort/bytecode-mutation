@@ -14,41 +14,65 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Main {
 
     /**
-     * Selects which mutation families are applied during a batch run.
+     * A mutation family that can be applied during a batch run.
      *
-     * <p>Pass as the optional seventh CLI argument: {@code javassist}, {@code pit},
-     * {@code security}, or {@code all} (default).
+     * <p>The optional seventh CLI argument selects any combination as a
+     * comma-separated list — e.g. {@code javassist}, {@code pit,security}, or
+     * {@code all} (the default, equivalent to all three).  See
+     * {@link #parse(String)}.
      */
     enum MutationStrategy {
-        /** Javassist snippet mutations only (loaded from the snippets directory). */
+        /** Javassist snippet mutations (loaded from the snippets directory). */
         JAVASSIST,
-        /** PIT conditional/boundary mutations only ({@link PitMutations}). */
+        /** PIT conditional/boundary mutations ({@link PitMutations}). */
         PIT,
-        /** Security-focused bytecode mutations only ({@link SecurityMutations}). */
-        SECURITY,
-        /** All three families — snippets, PIT, and security. */
-        ALL;
+        /** Security-focused bytecode mutations ({@link SecurityMutations}). */
+        SECURITY;
 
-        static MutationStrategy parse(String s) {
-            return switch (s.toLowerCase()) {
-                case "javassist" -> JAVASSIST;
-                case "pit"       -> PIT;
-                case "security"  -> SECURITY;
-                case "all"       -> ALL;
-                default -> throw new IllegalArgumentException(
-                        "Unknown mutation strategy '" + s
-                        + "' — expected javassist, pit, security, or all");
-            };
+        /**
+         * Parses a comma-separated strategy list into the set of selected
+         * families.  Tokens are case-insensitive and surrounding whitespace is
+         * ignored; {@code all} expands to every family.  Empty tokens are
+         * skipped, but the overall result must be non-empty.
+         *
+         * @throws IllegalArgumentException if a token is unrecognised or the list
+         *         selects no families
+         */
+        static Set<MutationStrategy> parse(String s) {
+            Set<MutationStrategy> selected = EnumSet.noneOf(MutationStrategy.class);
+            for (String part : s.split(",")) {
+                String token = part.trim().toLowerCase();
+                if (token.isEmpty()) {
+                    continue;
+                }
+                switch (token) {
+                    case "javassist" -> selected.add(JAVASSIST);
+                    case "pit"       -> selected.add(PIT);
+                    case "security"  -> selected.add(SECURITY);
+                    case "all"       -> selected.addAll(EnumSet.allOf(MutationStrategy.class));
+                    default -> throw new IllegalArgumentException(
+                            "Unknown mutation strategy '" + token
+                            + "' — expected javassist, pit, security, or all");
+                }
+            }
+            if (selected.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "No mutation strategy selected in '" + s
+                        + "' — expected a comma-separated list of javassist, pit, security, or all");
+            }
+            return selected;
         }
     }
 
@@ -56,7 +80,8 @@ public class Main {
         if (args.length < 4) {
             System.err.println(
                     "Usage: mutator <input-list-file> <input-root> <output-root> <output-tsv-file>"
-                    + " [<snippets-root>] [<seed>] [<mutations: javassist|pit|security|all>]");
+                    + " [<snippets-root>] [<seed>]"
+                    + " [<mutations: comma-separated javassist,pit,security,all>]");
             System.exit(1);
         }
 
@@ -65,19 +90,21 @@ public class Main {
         Path       outputRoot    = Paths.get(args[2]).toAbsolutePath();
         Path       outputTsvPath = Paths.get(args[3]);
         Path       snippetsRoot  = Paths.get(args.length > 4 ? args[4] : "snippets");
-        long       seed          = args.length > 5 ? Long.parseLong(args[5])           : 591L;
-        MutationStrategy strategy = args.length > 6 ? MutationStrategy.parse(args[6])  : MutationStrategy.ALL;
+        long       seed          = args.length > 5 ? Long.parseLong(args[5]) : 591L;
+        Set<MutationStrategy> strategies = args.length > 6
+                ? MutationStrategy.parse(args[6])
+                : EnumSet.allOf(MutationStrategy.class);
 
         // Load snippets once — fails fast with a clear message before touching any input files.
-        Map<String, JavassistMutation> snippets = loadSnippets(snippetsRoot, seed, strategy);
+        Map<String, JavassistMutation> snippets = loadSnippets(snippetsRoot, strategies);
 
         // Build the combined names list once — Javassist from the loaded map, PIT/security from enums.
-        List<String> mutationNames = buildMutationNames(snippets, strategy);
+        List<String> mutationNames = buildMutationNames(snippets, strategies);
         if (mutationNames.isEmpty()) {
-            System.err.println("[ERROR] No mutations available for strategy: " + strategy);
+            System.err.println("[ERROR] No mutations available for strategies: " + strategies);
             System.exit(1);
         }
-        System.out.printf("Loaded %d mutations (%s)%n", mutationNames.size(), strategy);
+        System.out.printf("Loaded %d mutations (%s)%n", mutationNames.size(), strategies);
 
         // Separate RNG for mutation selection — advanced once per input file so
         // the choice for every file is reproducible from the seed alone.
@@ -104,7 +131,8 @@ public class Main {
                     }
                 } catch (Exception e) {
                     System.err.printf("[ERROR] %s (%s): %s%n", inputPath, chosenName, e.getMessage());
-                    tsv.println(inputRel + "\t\t" + chosenName + "\t\t\terror");
+                    String message = sanitizeMessage(e.getClass().getSimpleName() + ": " + e.getMessage());
+                    tsv.println(inputRel + "\t\t" + chosenName + "\t\t\terror\t" + message);
                 }
                 tsv.flush(); // surface progress incrementally
             }
@@ -174,13 +202,19 @@ public class Main {
      * <p>Example: input {@code jars/foo/Bar.class} relative to {@code inputRoot},
      * with mutation {@code ENCRYPT_TEXT}, produces
      * {@code outputRoot/jars/foo/Bar_ENCRYPT_TEXT.class}.
+     *
+     * <p>Path-based Javassist mutation names contain {@code /} separators (e.g.
+     * {@code fsaccess/del/io}); those are flattened to {@code _} so the mutation
+     * stays within a single filename component rather than creating nested
+     * directories.
      */
     static Path deriveOutputPath(Path inputPath, Path inputRoot, Path outputRoot,
             String mutationName) {
         Path   relative       = inputRoot.relativize(inputPath.toAbsolutePath());
         String filename       = relative.getFileName().toString();
         String base           = filename.endsWith(".class") ? filename.replace(".class", "") : filename;
-        String outputFilename = base + "_" + mutationName + ".class";
+        String safeMutation   = mutationName.replace('/', '_');
+        String outputFilename = base + "_" + safeMutation + ".class";
         Path   relativeDir    = relative.getParent();
         Path   outputDir      = relativeDir != null ? outputRoot.resolve(relativeDir) : outputRoot;
         return outputDir.resolve(outputFilename);
@@ -199,7 +233,7 @@ public class Main {
 
     /** Returns the TSV header row. */
     static String buildTsvHeader() {
-        return "input\toutput\tmutation\tmethod\tline\treason";
+        return "input\toutput\tmutation\tmethod\tline\treason\tmessage";
     }
 
     /**
@@ -207,12 +241,14 @@ public class Main {
      * writes the result to disk if verification passes, and returns a single
      * TSV row.
      *
-     * <p>The row has six tab-separated fields: input path (relative to
+     * <p>The row has seven tab-separated fields: input path (relative to
      * {@code inputRoot}), output path (relative to {@code outputRoot}, or empty on
-     * failure), mutation name, target method name, source line number, and
-     * failure reason.  The reason is empty on success, {@code no_site} when the
-     * mutator finds no applicable injection point, and {@code verify_failed} when
-     * ASM bytecode verification rejects the result.
+     * failure), mutation name, target method name, source line number, failure
+     * reason, and a free-text failure message.  The reason is empty on success,
+     * {@code no_site} when the mutator finds no applicable injection point, and
+     * {@code verify_failed} when ASM bytecode verification rejects the result.
+     * The message holds the underlying exception/verifier text on failure and is
+     * empty on success.
      *
      * @return a TSV row string, or {@code null} if the mutator cannot be resolved
      */
@@ -234,29 +270,29 @@ public class Main {
      * returning an empty map otherwise.  Callers can detect a missing or unreadable
      * snippets directory immediately rather than discovering it per input file.
      */
-    private static Map<String, JavassistMutation> loadSnippets(Path snippetsRoot, long seed,
-            MutationStrategy strategy) throws IOException {
-        if (strategy == MutationStrategy.JAVASSIST || strategy == MutationStrategy.ALL) {
-            return SnippetLoader.load(snippetsRoot, seed);
+    private static Map<String, JavassistMutation> loadSnippets(Path snippetsRoot,
+            Set<MutationStrategy> strategies) throws IOException {
+        if (strategies.contains(MutationStrategy.JAVASSIST)) {
+            return SnippetLoader.load(snippetsRoot);
         }
         return new LinkedHashMap<>();
     }
 
     /**
-     * Builds the ordered list of mutation names for the active strategy.
+     * Builds the ordered list of mutation names for the selected strategies.
      * Javassist names come from the pre-loaded snippets map; PIT and security
      * names come from their respective enums.
      */
     private static List<String> buildMutationNames(Map<String, JavassistMutation> snippets,
-            MutationStrategy strategy) {
+            Set<MutationStrategy> strategies) {
         List<String> names = new ArrayList<>();
-        if (strategy == MutationStrategy.JAVASSIST || strategy == MutationStrategy.ALL) {
+        if (strategies.contains(MutationStrategy.JAVASSIST)) {
             names.addAll(snippets.keySet());
         }
-        if (strategy == MutationStrategy.PIT || strategy == MutationStrategy.ALL) {
+        if (strategies.contains(MutationStrategy.PIT)) {
             for (PitMutations m : PitMutations.values()) names.add(m.name());
         }
-        if (strategy == MutationStrategy.SECURITY || strategy == MutationStrategy.ALL) {
+        if (strategies.contains(MutationStrategy.SECURITY)) {
             for (SecurityMutations m : SecurityMutations.values()) names.add(m.name());
         }
         return names;
@@ -288,10 +324,11 @@ public class Main {
      * Verifies {@code result}, writes the mutated file on success, and appends
      * a TSV row to {@code rows}.
      *
-     * <p>Every row has six fields: input, output, mutation, method, line, reason.
-     * {@code reason} is empty on success; {@code no_site} when the mutator found
-     * no applicable injection point; {@code verify_failed} when ASM bytecode
-     * verification rejected the result.
+     * <p>Every row has seven fields: input, output, mutation, method, line,
+     * reason, message.  {@code reason} is empty on success; {@code no_site} when
+     * the mutator found no applicable injection point; {@code verify_failed} when
+     * ASM bytecode verification rejected the result.  {@code message} carries the
+     * underlying exception or verifier text on failure, empty otherwise.
      */
     private static void recordRow(List<String> rows, MutationResult result,
             String mutationName, Path inputPath, String input,
@@ -302,7 +339,7 @@ public class Main {
 
         if (!result.succeeded()) {
             String detail = result.failureDetail() != null ? result.failureDetail() : "no_site";
-            rows.add(prefix + detail);
+            rows.add(prefix + detail + "\t" + sanitizeMessage(result.failureMessage()));
             return;
         }
 
@@ -310,14 +347,28 @@ public class Main {
         if (error.isPresent()) {
             System.out.printf("[SKIP] %s + %s: verification failed%n",
                     inputPath.getFileName(), mutationName);
-            rows.add(prefix + "verify_failed");
+            rows.add(prefix + "verify_failed\t" + sanitizeMessage(error.get()));
             return;
         }
 
         Path   outputPath     = deriveOutputPath(inputPath, inputRoot, outputRoot, mutationName);
         String relativeOutput = outputRoot.relativize(outputPath).toString();
         writeOutput(outputPath, result.mutatedBytes());
-        rows.add(input + "\t" + relativeOutput + "\t" + mutationName + "\t" + method + "\t" + line + "\t");
+        rows.add(input + "\t" + relativeOutput + "\t" + mutationName + "\t" + method + "\t" + line + "\t\t");
+    }
+
+    /**
+     * Flattens a failure message into a single safe TSV cell: collapses any
+     * tabs/newlines to spaces and caps the length so one pathological message
+     * cannot blow out the column.  Returns {@code ""} for a {@code null} message.
+     */
+    private static String sanitizeMessage(String message) {
+        if (message == null) {
+            return "";
+        }
+        String oneLine = message.replaceAll("[\\t\\r\\n]+", " ").strip();
+        int    cap     = 500;
+        return oneLine.length() > cap ? oneLine.substring(0, cap) + "..." : oneLine;
     }
 
     static String formatDuration(long nanos) {

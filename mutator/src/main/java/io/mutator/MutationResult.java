@@ -20,10 +20,15 @@ package io.mutator;
  *                      e.g. {@code no_site:interface}, {@code inject_failed:compile}.
  *                      See {@link io.mutator.javassist.JavassistMutator} for
  *                      the full set of values it produces.
+ * @param failureMessage human-readable detail for the failure — typically the
+ *                      throwing exception's type and message — or {@code null}
+ *                      when there is none (success, or a no-site outcome with no
+ *                      underlying exception).
  */
 public record MutationResult(
         byte[]  mutatedBytes,
         boolean succeeded,
         String  targetName,
         int     lineNumber,
-        String  failureDetail) {}
+        String  failureDetail,
+        String  failureMessage) {}

@@ -122,7 +122,7 @@ public class PitestMutator implements Mutator {
         if (mutations.isEmpty()) {
             System.out.println("No '" + factory.getName()
                     + "' mutations found in " + binaryName);
-            return new MutationResult(classBytes, false, null, -1, "no_site");
+            return new MutationResult(classBytes, false, null, -1, "no_site", null);
         }
 
         MutationDetails first      = mutations.get(0);
@@ -132,7 +132,7 @@ public class PitestMutator implements Mutator {
         Mutant mutant     = mutater.getMutation(first.getId());
         String methodName = first.getMethod();
         int    lineNumber = first.getLineNumber();
-        return new MutationResult(mutant.getBytes(), true, methodName, lineNumber, null);
+        return new MutationResult(mutant.getBytes(), true, methodName, lineNumber, null, null);
     }
 
     // -----------------------------------------------------------------------

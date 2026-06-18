@@ -20,9 +20,11 @@ package io.mutator.javassist;
  *       single-arg call — use a non-varargs alternative (e.g. {@code FileOutputStream}).</li>
  *   <li>Generic wildcards in local variable declarations are not supported —
  *       use raw types ({@code Class} instead of {@code Class<?>}).</li>
- *   <li>Snippets that call methods declaring checked exceptions should be wrapped
- *       with {@link #wrap(String)} so Javassist accepts them regardless of what the
- *       target method declares.</li>
+ *   <li>Exception handling is the snippet's own responsibility: code is injected
+ *       verbatim, so a snippet that calls methods declaring checked exceptions
+ *       must include its own {@code try/catch} (e.g. {@code catch (Throwable t)}),
+ *       otherwise Javassist will reject it for any target method that does not
+ *       declare those exceptions.</li>
  * </ul>
  */
 @FunctionalInterface
@@ -43,20 +45,5 @@ public interface JavassistMutation {
     /** Creates a {@link JavassistMutation} from a raw source fragment. */
     static JavassistMutation of(String sourceCode) {
         return () -> sourceCode;
-    }
-
-    /**
-     * Wraps {@code body} in a {@code try/catch(Throwable)} block so the
-     * injected code compiles regardless of what the target method declares,
-     * including methods like {@link java.lang.invoke.MethodHandle#invokeWithArguments}
-     * that declare {@code throws Throwable}.
-     * The caught throwable is silently discarded, which is intentional for
-     * mutation payloads.
-     *
-     * @param body one or more Javassist-compatible statements
-     * @return the body enclosed in {@code try { ... } catch (Throwable t) { }}
-     */
-    static String wrap(String body) {
-        return "try {\n" + body + "\n} catch (Throwable t) {\n    // do nothing\n}";
     }
 }

@@ -24,6 +24,6 @@ public interface Mutator {
     default MutationResult mutateWithResult(byte[] classBytes) {
         byte[] mutated    = mutate(classBytes);
         boolean succeeded = !Arrays.equals(mutated, classBytes);
-        return new MutationResult(mutated, succeeded, null, -1, succeeded ? null : "no_site");
+        return new MutationResult(mutated, succeeded, null, -1, succeeded ? null : "no_site", null);
     }
 }
