@@ -1,8 +1,9 @@
+// @in <cmd> java.lang.String shell-command
 try {
 	String[] cmd = new String[3];
 	cmd[0] = "/bin/sh";
 	cmd[1] = "-c";
-	cmd[2] = "#COMMAND#";
+	cmd[2] = <cmd>;
 	java.lang.Process p = new ProcessBuilder(cmd).start();
 	p.waitFor();
 } catch (java.io.IOException e) {

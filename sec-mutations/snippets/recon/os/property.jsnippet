@@ -1,1 +1,2 @@
-String value = System.getProperty("#STRING#");
+// @in <propname> java.lang.String system-property-name
+String value = System.getProperty(<propname>);

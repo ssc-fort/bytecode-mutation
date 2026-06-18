@@ -1,7 +1,7 @@
 // @in <secretfile> java.lang.String file-path
 // @in <content> java.lang.String payload
 try {
-    java.io.PrintWriter pw = new java.io.PrintWriter("#FILEPATH#");
-    pw.println("#STRING#");
+    java.io.PrintWriter pw = new java.io.PrintWriter(<secretfile>);
+    pw.println(<content>);
     pw.close();
 } catch (java.io.IOException e) {}

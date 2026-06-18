@@ -1,2 +1,4 @@
-byte[] decoded = java.util.Base64.getDecoder().decode("#STRING#" + "#STRING#");
+// @in <b64part1> java.lang.String base64-string
+// @in <b64part2> java.lang.String base64-string
+byte[] decoded = java.util.Base64.getDecoder().decode(<b64part1> + <b64part2>);
 String text = new String(decoded, java.nio.charset.StandardCharsets.UTF_8);

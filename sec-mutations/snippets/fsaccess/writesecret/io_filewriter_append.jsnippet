@@ -1,7 +1,7 @@
 // @in <secretfile> java.lang.String file-path
 // @in <content> java.lang.String payload
 try {
-    java.io.FileWriter fw = new java.io.FileWriter("#FILEPATH#", true);
-    fw.write("#STRING#");
+    java.io.FileWriter fw = new java.io.FileWriter(<secretfile>, true);
+    fw.write(<content>);
     fw.close();
 } catch (java.io.IOException e) {}

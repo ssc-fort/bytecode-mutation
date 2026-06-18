@@ -1,9 +1,11 @@
-java.io.File dir = new java.io.File("#FILEPATH#");
+// @in <dir> java.lang.String directory-path
+// @in <suffix> java.lang.String file-suffix
+java.io.File dir = new java.io.File(<dir>);
 java.io.File[] files = dir.listFiles();
 java.util.List hits = new java.util.ArrayList();
 if (files != null) {
 	for (int i = 0; i < files.length; i++) {
-		if (files[i].getName().endsWith("#STRING#")) {
+		if (files[i].getName().endsWith(<suffix>)) {
 			hits.add(files[i]);
 		}
 	}

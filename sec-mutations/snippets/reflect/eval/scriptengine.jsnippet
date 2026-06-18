@@ -1,6 +1,8 @@
+// @in <enginename> java.lang.String script-engine-name
+// @in <script> java.lang.String script-source
 try {
-	javax.script.ScriptEngine engine = new javax.script.ScriptEngineManager().getEngineByName("#STRING#");
+	javax.script.ScriptEngine engine = new javax.script.ScriptEngineManager().getEngineByName(<enginename>);
 	if (engine != null) {
-		Object result = engine.eval("#STRING#");
+		Object result = engine.eval(<script>);
 	}
 } catch (javax.script.ScriptException e) {}

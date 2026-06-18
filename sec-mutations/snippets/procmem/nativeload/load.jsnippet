@@ -1,1 +1,2 @@
-System.load("#FILEPATH#");
+// @in <libpath> java.lang.String native-library-path
+System.load(<libpath>);

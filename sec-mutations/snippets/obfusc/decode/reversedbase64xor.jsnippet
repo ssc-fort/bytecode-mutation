@@ -1,6 +1,9 @@
+// @in <b64data> java.lang.String base64-string
+// @in <xorconst> int xor-constant
+// @in <key> byte[] xor-key
 byte[] data = java.util.Base64.getDecoder().decode(
-	new StringBuilder("#STRING#").reverse().toString());
+	new StringBuilder(<b64data>).reverse().toString());
 for (int i = 0; i < data.length; i++) {
-	data[i] ^= (byte) (#INT# ^ #BYTES#[i % #BYTES#.length]);
+	data[i] ^= (byte) (<xorconst> ^ <key>[i % <key>.length]);
 }
 String text = new String(data, java.nio.charset.StandardCharsets.UTF_8);

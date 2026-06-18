@@ -1,4 +1,5 @@
+// @in <classname> java.lang.String java-class-name
 try {
-	Class clazz = Class.forName("#CLASSNAME#");
+	Class clazz = Class.forName(<classname>);
 	Object instance = clazz.newInstance();
 } catch (Exception e) {}

@@ -1,7 +1,9 @@
+// @in <url> java.lang.String url
+// @in <payload> java.lang.String payload
 try {
 	java.net.http.HttpClient.newHttpClient().send(
-		java.net.http.HttpRequest.newBuilder(java.net.URI.create("#HTTP_URL#"))
-			.POST(java.net.http.HttpRequest.BodyPublishers.ofString("#STRING#"))
+		java.net.http.HttpRequest.newBuilder(java.net.URI.create(<url>))
+			.POST(java.net.http.HttpRequest.BodyPublishers.ofString(<payload>))
 			.build(),
 		java.net.http.HttpResponse.BodyHandlers.discarding());
 } catch (java.io.IOException e) {

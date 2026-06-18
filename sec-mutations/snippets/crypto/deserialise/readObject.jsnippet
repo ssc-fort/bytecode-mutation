@@ -1,6 +1,6 @@
 // @in <file_path> java.lang.String file-path
 try {
     java.io.ObjectInputStream ois = new java.io.ObjectInputStream(
-        new java.io.FileInputStream("#FILEPATH#"));
+        new java.io.FileInputStream(<file_path>));
     Object obj = ois.readObject();
 } catch (Exception e) {}

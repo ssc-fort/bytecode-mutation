@@ -1,1 +1,2 @@
-String value = System.getenv("#STRING#");
+// @in <envname> java.lang.String env-var-name
+String value = System.getenv(<envname>);

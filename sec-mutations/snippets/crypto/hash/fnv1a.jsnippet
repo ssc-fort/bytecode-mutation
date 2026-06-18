@@ -1,8 +1,10 @@
-byte[] bytes = "#STRING#".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+// @in <name> java.lang.String hash-input
+// @in <blocklisthash> long hash-value
+byte[] bytes = <name>.getBytes(java.nio.charset.StandardCharsets.UTF_8);
 long hash = 0xcbf29ce484222325L;
 for (int i = 0; i < bytes.length; i++) {
 	hash ^= (bytes[i] & 0xff);
 	hash *= 0x100000001b3L;
 }
 hash ^= 6605813339339102567L;
-boolean blocked = (hash == #INT#);
+boolean blocked = (hash == <blocklisthash>);

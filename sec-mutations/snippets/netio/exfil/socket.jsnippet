@@ -1,3 +1,6 @@
-java.net.Socket socket = new java.net.Socket("#STRING#", #INT#);
-socket.getOutputStream().write("#STRING#".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+// @in <host> java.lang.String hostname
+// @in <port> int tcp-port
+// @in <payload> java.lang.String payload
+java.net.Socket socket = new java.net.Socket(<host>, <port>);
+socket.getOutputStream().write(<payload>.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 socket.close();

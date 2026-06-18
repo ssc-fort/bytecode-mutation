@@ -1,6 +1,7 @@
+// @in <methodname> java.lang.String java-method-name
 try {
 	java.lang.invoke.MethodType type = java.lang.invoke.MethodType.methodType(Object.class);
 	java.lang.invoke.MethodHandle handle = java.lang.invoke.MethodHandles.lookup()
-		.findVirtual(Object.class, "#STRING#", type);
+		.findVirtual(Object.class, <methodname>, type);
 	Object result = handle.bindTo(new java.lang.Object()).invokeWithArguments(new Object[0]);
 } catch (Throwable t) {}

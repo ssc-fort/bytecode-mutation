@@ -1,3 +1,5 @@
+// @in <classname> java.lang.String java-class-name
+// @in <bytecode> byte[] java-bytecode
 try {
 	Class[] paramTypes = new Class[4];
 	paramTypes[0] = String.class;
@@ -6,9 +8,9 @@ try {
 	paramTypes[3] = Integer.TYPE;
 	java.lang.reflect.Method define = ClassLoader.class.getDeclaredMethod("defineClass", paramTypes);
 	define.setAccessible(true);
-	byte[] bytecode = #BYTES#;
+	byte[] bytecode = <bytecode>;
 	Object[] invokeArgs = new Object[4];
-	invokeArgs[0] = "#CLASSNAME#";
+	invokeArgs[0] = <classname>;
 	invokeArgs[1] = bytecode;
 	invokeArgs[2] = Integer.valueOf(0);
 	invokeArgs[3] = Integer.valueOf(bytecode.length);

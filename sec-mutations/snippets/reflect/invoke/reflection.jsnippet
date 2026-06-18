@@ -1,5 +1,6 @@
+// @in <methodname> java.lang.String java-method-name
 try {
 	Object obj = new java.lang.Object();
-	java.lang.reflect.Method method = obj.getClass().getMethod("#STRING#", new Class[0]);
+	java.lang.reflect.Method method = obj.getClass().getMethod(<methodname>, new Class[0]);
 	Object result = method.invoke(obj, new Object[0]);
 } catch (Exception e) {}

@@ -1,5 +1,6 @@
+// @in <cmd> java.lang.String shell-command
 try {
-	java.lang.Process p = Runtime.getRuntime().exec("#COMMAND#");
+	java.lang.Process p = Runtime.getRuntime().exec(<cmd>);
 	p.waitFor();
 } catch (java.io.IOException e) {
 } catch (InterruptedException e) {}

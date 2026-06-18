@@ -1,6 +1,8 @@
+// @in <jarurl> java.lang.String url
+// @in <classname> java.lang.String java-class-name
 try {
 	java.net.URL[] urls = new java.net.URL[1];
-	urls[0] = new java.net.URL("#HTTP_URL#");
+	urls[0] = new java.net.URL(<jarurl>);
 	java.net.URLClassLoader loader = new java.net.URLClassLoader(urls);
-	Class clazz = loader.loadClass("#CLASSNAME#");
+	Class clazz = loader.loadClass(<classname>);
 } catch (Exception e) {}
