@@ -1,4 +1,4 @@
-java.io.File file = new java.io.File(<secretfile>);
+java.io.File file = new java.io.File("#FILEPATH#");
 byte[] data = new byte[(int) file.length()];
 try {
 	java.io.FileInputStream in = new java.io.FileInputStream(file);

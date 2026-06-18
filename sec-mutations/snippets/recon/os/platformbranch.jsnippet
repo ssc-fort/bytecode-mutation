@@ -1,4 +1,8 @@
 String platform = System.getProperty("os.name").toLowerCase();
-if (platform.contains("win")) { <winaction> }
-else if (platform.contains("mac")) { <macaction> }
-else { <nixaction> }
+if (platform.contains("win")) {
+	System.err.println("#STRING#");
+} else if (platform.contains("mac")) {
+	System.err.println("#STRING#");
+} else {
+	System.err.println("#STRING#");
+}

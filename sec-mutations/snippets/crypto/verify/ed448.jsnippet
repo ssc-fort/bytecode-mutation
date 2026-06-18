@@ -1,4 +1,4 @@
 java.security.Signature sig = java.security.Signature.getInstance("Ed448");
-sig.initVerify(<publicKey>);
-sig.update(<message>);
-boolean ok = sig.verify(<signature>);
+sig.initVerify((java.security.PublicKey) null);
+sig.update(#BYTES#);
+boolean ok = sig.verify(#BYTES#);

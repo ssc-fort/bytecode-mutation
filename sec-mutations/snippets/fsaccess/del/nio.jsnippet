@@ -1,4 +1,4 @@
-java.nio.file.Path path = java.nio.file.Paths.get("<filename>");
+java.nio.file.Path path = new java.io.File("#FILEPATH#").toPath();
 try {
 	java.nio.file.Files.delete(path);
-} catch (IOException e) {}
+} catch (java.io.IOException e) {}

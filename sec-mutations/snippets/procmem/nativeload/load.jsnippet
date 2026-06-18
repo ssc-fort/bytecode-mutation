@@ -1,1 +1,1 @@
-System.load(<libpath>);
+System.load("#FILEPATH#");

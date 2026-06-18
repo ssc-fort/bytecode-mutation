@@ -1,5 +1,5 @@
 try {
-    java.io.FileWriter fw = new java.io.FileWriter(<secretfile>);
-    fw.write(<content>);
+    java.io.FileWriter fw = new java.io.FileWriter("#FILEPATH#");
+    fw.write("#STRING#");
     fw.close();
 } catch (java.io.IOException e) {}

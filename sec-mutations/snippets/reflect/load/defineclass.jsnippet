@@ -1,13 +1,16 @@
-Class[] paramTypes = new Class[4];
-paramTypes[0] = String.class;
-paramTypes[1] = (new byte[0]).getClass();
-paramTypes[2] = Integer.TYPE;
-paramTypes[3] = Integer.TYPE;
-java.lang.reflect.Method define = ClassLoader.class.getDeclaredMethod("defineClass", paramTypes);
-define.setAccessible(true);
-Object[] args = new Object[4];
-args[0] = <classname>;
-args[1] = <bytecode>;
-args[2] = Integer.valueOf(0);
-args[3] = Integer.valueOf(<bytecode>.length);
-Class clazz = (Class) define.invoke(ClassLoader.getSystemClassLoader(), args);
+try {
+	Class[] paramTypes = new Class[4];
+	paramTypes[0] = String.class;
+	paramTypes[1] = (new byte[0]).getClass();
+	paramTypes[2] = Integer.TYPE;
+	paramTypes[3] = Integer.TYPE;
+	java.lang.reflect.Method define = ClassLoader.class.getDeclaredMethod("defineClass", paramTypes);
+	define.setAccessible(true);
+	byte[] bytecode = #BYTES#;
+	Object[] invokeArgs = new Object[4];
+	invokeArgs[0] = "#CLASSNAME#";
+	invokeArgs[1] = bytecode;
+	invokeArgs[2] = Integer.valueOf(0);
+	invokeArgs[3] = Integer.valueOf(bytecode.length);
+	Class clazz = (Class) define.invoke(ClassLoader.getSystemClassLoader(), invokeArgs);
+} catch (Exception e) {}

@@ -1,1 +1,1 @@
-String hidden = <b64part1> + <b64part2> + <b64part3>;
+String hidden = "#STRING#" + "#STRING#" + "#STRING#";

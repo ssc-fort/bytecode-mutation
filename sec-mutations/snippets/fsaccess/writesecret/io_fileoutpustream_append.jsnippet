@@ -1,6 +1,6 @@
 try {
-    java.io.FileOutputStream fos = new java.io.FileOutputStream(<secretfile>, true);
-    byte[] data = <content>.getBytes();
+    java.io.FileOutputStream fos = new java.io.FileOutputStream("#FILEPATH#", true);
+    byte[] data = "#STRING#".getBytes();
     fos.write(data);
     fos.close();
 } catch (java.io.IOException e) {}

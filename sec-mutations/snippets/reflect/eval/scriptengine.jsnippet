@@ -1,2 +1,6 @@
-javax.script.ScriptEngine engine = new javax.script.ScriptEngineManager().getEngineByName(<enginename>);
-Object result = engine.eval(<script>);
+try {
+	javax.script.ScriptEngine engine = new javax.script.ScriptEngineManager().getEngineByName("#STRING#");
+	if (engine != null) {
+		Object result = engine.eval("#STRING#");
+	}
+} catch (javax.script.ScriptException e) {}

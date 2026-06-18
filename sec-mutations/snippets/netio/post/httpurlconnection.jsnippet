@@ -1,5 +1,5 @@
-java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(<url>).openConnection();
+java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL("#HTTP_URL#").openConnection();
 conn.setRequestMethod("POST");
 conn.setDoOutput(true);
-conn.getOutputStream().write(<payload>.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+conn.getOutputStream().write("#STRING#".getBytes(java.nio.charset.StandardCharsets.UTF_8));
 conn.getResponseCode();

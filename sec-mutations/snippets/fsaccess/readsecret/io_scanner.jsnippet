@@ -1,5 +1,4 @@
-         java.util.Scanner sc = new java.util.Scanner(
-                new java.io.File("<filename>"));
-            String line = sc.nextLine();
-            sc.close();
-
+java.util.Scanner sc = new java.util.Scanner(
+        new java.io.File("#FILEPATH#"));
+String line = sc.nextLine();
+sc.close();

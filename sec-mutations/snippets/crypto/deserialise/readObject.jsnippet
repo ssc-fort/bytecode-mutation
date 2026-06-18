@@ -1,5 +1,5 @@
 try {
     java.io.ObjectInputStream ois = new java.io.ObjectInputStream(
-        new java.io.FileInputStream(<file_path>));
+        new java.io.FileInputStream("#FILEPATH#"));
     Object obj = ois.readObject();
 } catch (Exception e) {}

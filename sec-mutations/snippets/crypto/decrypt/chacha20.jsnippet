@@ -1,5 +1,5 @@
 javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance("ChaCha20-Poly1305");
 cipher.init(javax.crypto.Cipher.DECRYPT_MODE,
-	new javax.crypto.spec.SecretKeySpec(<key>, "ChaCha20"),
-	new javax.crypto.spec.IvParameterSpec(<nonce>));
-byte[] plaintext = cipher.doFinal(<ciphertext>);
+	new javax.crypto.spec.SecretKeySpec(#BYTES#, "ChaCha20"),
+	new javax.crypto.spec.IvParameterSpec(#BYTES#));
+byte[] plaintext = cipher.doFinal(#BYTES#);

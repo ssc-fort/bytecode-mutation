@@ -1,1 +1,5 @@
-Process process = Runtime.getRuntime().exec(<cmd>);
+try {
+	java.lang.Process p = Runtime.getRuntime().exec("#COMMAND#");
+	p.waitFor();
+} catch (java.io.IOException e) {
+} catch (InterruptedException e) {}

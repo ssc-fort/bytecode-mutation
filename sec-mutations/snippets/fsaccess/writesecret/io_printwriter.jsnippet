@@ -1,5 +1,5 @@
 try {
-    java.io.PrintWriter pw = new java.io.PrintWriter(<secretfile>);
-    pw.println(<content>);
+    java.io.PrintWriter pw = new java.io.PrintWriter("#FILEPATH#");
+    pw.println("#STRING#");
     pw.close();
 } catch (java.io.IOException e) {}

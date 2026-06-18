@@ -1,5 +1,6 @@
 try {
-    java.lang.reflect.Field f = <targetclass>.getClass().getDeclaredField(<fieldname>);
-    f.setAccessible(true);
-    Object val = f.get(<targetclass>);
+	Object target = new java.lang.Object();
+	java.lang.reflect.Field f = target.getClass().getDeclaredField("#STRING#");
+	f.setAccessible(true);
+	Object val = f.get(target);
 } catch (Exception e) {}

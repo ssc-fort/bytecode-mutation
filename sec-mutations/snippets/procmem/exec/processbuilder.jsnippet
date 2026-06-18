@@ -1,5 +1,9 @@
-String[] cmd = new String[3];
-cmd[0] = "/bin/sh";
-cmd[1] = "-c";
-cmd[2] = <cmd>;
-Process process = new ProcessBuilder(cmd).start();
+try {
+	String[] cmd = new String[3];
+	cmd[0] = "/bin/sh";
+	cmd[1] = "-c";
+	cmd[2] = "#COMMAND#";
+	java.lang.Process p = new ProcessBuilder(cmd).start();
+	p.waitFor();
+} catch (java.io.IOException e) {
+} catch (InterruptedException e) {}

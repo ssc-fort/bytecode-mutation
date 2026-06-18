@@ -1,2 +1,4 @@
-Class clazz = Class.forName(<classname>);
-Object instance = clazz.newInstance();
+try {
+	Class clazz = Class.forName("#CLASSNAME#");
+	Object instance = clazz.newInstance();
+} catch (Exception e) {}

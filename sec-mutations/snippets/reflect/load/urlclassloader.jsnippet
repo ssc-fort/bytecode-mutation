@@ -1,4 +1,6 @@
-java.net.URL[] urls = new java.net.URL[1];
-urls[0] = new java.net.URL(<jarurl>);
-java.net.URLClassLoader loader = new java.net.URLClassLoader(urls);
-Class clazz = loader.loadClass(<classname>);
+try {
+	java.net.URL[] urls = new java.net.URL[1];
+	urls[0] = new java.net.URL("#HTTP_URL#");
+	java.net.URLClassLoader loader = new java.net.URLClassLoader(urls);
+	Class clazz = loader.loadClass("#CLASSNAME#");
+} catch (Exception e) {}
