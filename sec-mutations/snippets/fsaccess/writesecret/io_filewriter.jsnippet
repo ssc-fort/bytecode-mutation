@@ -1,3 +1,5 @@
+// @in <secretfile> java.lang.String file-path
+// @in <content> java.lang.String payload
 try {
     java.io.FileWriter fw = new java.io.FileWriter("#FILEPATH#");
     fw.write("#STRING#");

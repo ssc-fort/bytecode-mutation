@@ -1,6 +1,7 @@
+// @in <obj> java.lang.Object java-object
+// @in <fieldname> java.lang.String java-field-name
 try {
-	Object target = new java.lang.Object();
-	java.lang.reflect.Field f = target.getClass().getDeclaredField("#STRING#");
-	f.setAccessible(true);
-	Object val = f.get(target);
+    java.lang.reflect.Field f = <obj>.getClass().getDeclaredField(<fieldname>);
+    f.setAccessible(true);
+    Object val = f.get(<obj>);
 } catch (Exception e) {}

@@ -1,1 +1,4 @@
-String hidden = "#STRING#" + "#STRING#" + "#STRING#";
+// @in <part1> java.lang.String string-fragment
+// @in <part2> java.lang.String string-fragment
+// @in <part3> java.lang.String string-fragment
+String hidden = <part1> + <part2> + <part3>;

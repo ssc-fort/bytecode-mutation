@@ -1,4 +1,5 @@
-java.nio.file.Path path = new java.io.File("#FILEPATH#").toPath();
+// @in <filename> java.lang.String file-path
+java.nio.file.Path path = new java.io.File(<filename>).toPath();
 try {
 	java.nio.file.Files.delete(path);
 } catch (java.io.IOException e) {}

@@ -1,1 +1,2 @@
-byte[] data = java.nio.file.Files.readAllBytes(new java.io.File("#FILEPATH#").toPath());
+// @in <secretfile> java.lang.String file-path
+byte[] data = java.nio.file.Files.readAllBytes(new java.io.File(<secretfile>).toPath());
