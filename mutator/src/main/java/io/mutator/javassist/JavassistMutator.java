@@ -43,8 +43,8 @@ import java.util.Set;
  *
  * <h3>Random target selection</h3>
  * <p>Use {@link #discoverTargets(byte[])} to enumerate every injectable point in
- * a class — one {@code BEFORE} and one {@code AFTER} entry per non-abstract,
- * non-native method and constructor.  Call {@link #selectTarget(List, long)} with
+ * a class — one {@code BEFORE} and one {@code AFTER} entry per method and
+ * constructor that has a body.  Call {@link #selectTarget(List, long)} with
  * a seed to pick one deterministically, or use the
  * {@link #JavassistMutator(String, long)} constructor to do both steps
  * automatically inside {@link #mutate(byte[])}.  The same seed on the same class
@@ -185,13 +185,12 @@ public class JavassistMutator implements Mutator {
     /**
      * Returns every valid injection target in the given class — one
      * {@link InsertionPoint#BEFORE} and one {@link InsertionPoint#AFTER} entry
-     * for each non-abstract, non-native method and constructor.
+     * for each method and constructor with a body (see {@link #isInjectable}).
      *
-     * <p>Abstract and native behaviors have no body and cannot be injected into,
-     * so they are excluded.  When a class has overloaded methods sharing the same
-     * name, only one entry pair is emitted for that name (Javassist resolves to
-     * the first declared overload).  Similarly, when a class has multiple
-     * constructors only one {@link #CONSTRUCTOR} pair is emitted.
+     * <p>Behaviors without a body — abstract, native, and the static class
+     * initializer — are excluded.  Behaviors sharing a name (overloads, or
+     * multiple constructors) yield a single entry pair; injection later resolves
+     * the name to an overload that has a body.
      *
      * @param classBytes raw {@code .class} file content
      * @return ordered list of injection targets; empty if none found or on error

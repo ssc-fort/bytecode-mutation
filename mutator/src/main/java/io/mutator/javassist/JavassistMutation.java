@@ -21,10 +21,10 @@ package io.mutator.javassist;
  *   <li>Generic wildcards in local variable declarations are not supported —
  *       use raw types ({@code Class} instead of {@code Class<?>}).</li>
  *   <li>Exception handling is the snippet's own responsibility: code is injected
- *       verbatim, so a snippet that calls methods declaring checked exceptions
- *       must include its own {@code try/catch} (e.g. {@code catch (Throwable t)}),
- *       otherwise Javassist will reject it for any target method that does not
- *       declare those exceptions.</li>
+ *       verbatim.  Javassist's compiler does not enforce checked exceptions,
+ *       so a snippet compiles whether or not it catches them; add a
+ *       {@code try/catch} only when the injected code should swallow
+ *       exceptions at runtime.</li>
  * </ul>
  */
 @FunctionalInterface

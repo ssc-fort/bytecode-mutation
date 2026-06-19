@@ -18,6 +18,11 @@ import java.util.regex.Pattern;
  * Token types that can be embedded in {@code .jsnippet} files to mark values
  * that should be replaced with generated candidates at injection time.
  *
+ * <p>This handles the original untyped {@code #TOKEN#} format; the typed
+ * {@code <name>} / {@code // @in} format is handled by
+ * {@link PlaceholderSubstitutor}.  {@link JavassistMutator} dispatches to
+ * whichever format a snippet uses, so both coexist.
+ *
  * <h3>Syntax and positions</h3>
  * <p>A token is written as {@code #TOKEN_NAME#} directly in the snippet body.
  * The substitution recognises three positions, decided by the double quotes (if
