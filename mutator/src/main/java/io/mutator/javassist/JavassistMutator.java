@@ -438,8 +438,7 @@ public class JavassistMutator implements Mutator {
         Set<String>           seen    = new HashSet<>();
 
         for (CtBehavior behavior : cc.getDeclaredBehaviors()) {
-            int mod = behavior.getModifiers();
-            if ((mod & (Modifier.ABSTRACT | Modifier.NATIVE)) != 0) {
+            if (!isInjectable(behavior)) {
                 continue;
             }
             String name = (behavior instanceof CtConstructor) ? CONSTRUCTOR : behavior.getName();
@@ -452,22 +451,67 @@ public class JavassistMutator implements Mutator {
     }
 
     /**
+     * Whether {@code behavior} is a viable injection target — one with an actual
+     * method body Javassist can insert into.  Filtering here means
+     * {@link #selectTarget} only ever lands on injectable behaviours, turning
+     * what used to be {@code inject_failed} outcomes (no body, phantom
+     * constructor) into either a successful mutation elsewhere in the class or a
+     * clean {@code no_site}.  Excluded:
+     * <ul>
+     *   <li>abstract and native behaviours — declared without a body;</li>
+     *   <li>the static class initializer {@code <clinit>}: {@link
+     *       CtClass#getDeclaredBehaviors()} reports it as a {@link CtConstructor},
+     *       but {@link CtClass#getDeclaredConstructors()} (used to resolve a
+     *       {@code CONSTRUCTOR} target) does not, so selecting it would later fail
+     *       to resolve with "no constructors found";</li>
+     *   <li>anything else missing a {@code Code} attribute — e.g. a synthetic
+     *       method with the abstract/native flags cleared but still no body.</li>
+     * </ul>
+     */
+    private static boolean isInjectable(CtBehavior behavior) {
+        int mod = behavior.getModifiers();
+        if ((mod & (Modifier.ABSTRACT | Modifier.NATIVE)) != 0) {
+            return false;
+        }
+        if (behavior instanceof CtConstructor ctor && ctor.isClassInitializer()) {
+            return false;
+        }
+        return behavior.getMethodInfo().getCodeAttribute() != null;
+    }
+
+    /**
      * Resolves the target {@link CtBehavior} — either a {@link CtMethod} or a
-     * {@link CtConstructor} — from the given name.
+     * {@link CtConstructor} — from the given name, choosing an
+     * {@link #isInjectable injectable} one.
+     *
+     * <p>Resolving by name alone is not enough: when a name is overloaded, the
+     * concrete overload may have satisfied target discovery while
+     * {@link CtClass#getDeclaredMethod(String)} returns a different,
+     * <em>bodyless</em> overload (e.g. an {@code abstract addEntry(...)} declared
+     * alongside a concrete one) — which then fails injection with "no method
+     * body". We therefore pick the first injectable behaviour of that name to
+     * match what discovery deemed viable.
      */
     private static CtBehavior resolveBehavior(CtClass cc, String binaryName,
             String targetName) throws Exception {
         if (CONSTRUCTOR.equals(targetName)) {
-            CtConstructor[] ctors = cc.getDeclaredConstructors();
-            if (ctors.length == 0) {
-                throw new Exception("no constructors found in " + binaryName);
+            for (CtConstructor ctor : cc.getDeclaredConstructors()) {
+                if (isInjectable(ctor)) {
+                    return ctor;
+                }
             }
-            if (ctors.length > 1) {
-                System.out.printf("JavassistMutator: %s has %d constructors; "
-                        + "targeting the first declared one%n", binaryName, ctors.length);
-            }
-            return ctors[0];
+            throw new Exception("no injectable constructor in " + binaryName);
         }
-        return cc.getDeclaredMethod(targetName);
+        CtMethod fallback = null;
+        for (CtMethod method : cc.getDeclaredMethods()) {
+            if (method.getName().equals(targetName)) {
+                if (isInjectable(method)) {
+                    return method;
+                }
+                fallback = method;
+            }
+        }
+        // Defensive: discovery should guarantee an injectable overload exists.
+        return fallback != null ? fallback : cc.getDeclaredMethod(targetName);
     }
 }
